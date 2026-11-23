@@ -149,6 +149,7 @@ export function newCodeSheet(code, onClose) {
           ${packFieldsHtml()}
           <p class="margin-line" data-margin role="status"></p>
           <label class="field">Existencias <input name="stock" inputmode="decimal" value="1" autocomplete="off"></label>
+          <label class="field">Avisar cuando queden <input name="minStock" inputmode="decimal" value="" placeholder="Ej. 5" autocomplete="off"></label>
           ${categoryFieldHtml()}
         </div>
       </div>
@@ -228,9 +229,11 @@ export function newCodeSheet(code, onClose) {
         if (price === null || cost === null || stock === null) throw new UserError('Revisa el precio, el costo y las existencias.');
         const packUnits = values.packUnits.trim() === '' ? 0 : Number(values.packUnits);
         if (!Number.isInteger(packUnits) || packUnits < 0) throw new UserError('Las piezas por caja deben ser un número entero.');
+        const minStock = parseQty(values.minStock || '0');
+        if (minStock === null || minStock < 0) throw new UserError('Revisa el aviso de existencias.');
         productId = await saveProduct({
           name: values.name.trim(), category: readCategory(values), price, cost, stock, image: picker.value,
-          barcodes: [{ label: '', code }], unit: 'pza', taxRate: state.settings.defaultTaxRate, minStock: 0, expiry: '', packUnits,
+          barcodes: [{ label: '', code }], unit: 'pza', taxRate: state.settings.defaultTaxRate, minStock, expiry: '', packUnits,
         });
       }
       close();
