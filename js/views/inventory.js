@@ -265,7 +265,7 @@ export function renderInventory(root) {
         <input id="filter" type="search" placeholder="Nombre o código" aria-label="Buscar" value="${filter.text}">
       </div>
       <div class="stat-cards" id="stats">
-        ${stat('all', 'si-blue', '▦', state.products.length, 'Productos')}
+        ${stat('all', 'si-accent', '▦', state.products.length, 'Productos')}
         ${stat('low', 'si-red', '↓', low, 'Se acaban')}
         ${stat('expiring', 'si-orange', '!', expiring, 'Caducan')}
       </div>
