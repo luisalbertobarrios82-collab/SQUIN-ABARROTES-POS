@@ -134,6 +134,22 @@ export function showError(error) {
 }
 
 // Abre un <dialog> como hoja inferior. onReady recibe (dialog, close).
+// En iPhone el teclado tapa la parte de abajo de la pantalla, pero la página no se entera:
+// las ventanas se quedaban debajo del teclado. Se suben justo encima de él.
+function fitModalsToKeyboard() {
+  const vv = window.visualViewport;
+  if (!vv) return;
+  const keyboard = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+  document.querySelectorAll('dialog.modal[open]').forEach((dialog) => {
+    dialog.style.marginBottom = keyboard ? `${keyboard}px` : '';
+    dialog.style.maxHeight = keyboard ? `${Math.round(vv.height * 0.94)}px` : '';
+  });
+  const focused = document.activeElement;
+  if (keyboard && focused?.closest?.('dialog.modal')) focused.scrollIntoView({ block: 'center' });
+}
+window.visualViewport?.addEventListener('resize', fitModalsToKeyboard);
+window.visualViewport?.addEventListener('scroll', fitModalsToKeyboard);
+
 export function openModal(content, onReady, { onClose } = {}) {
   const dialog = document.createElement('dialog');
   dialog.className = 'modal';
@@ -152,6 +168,7 @@ export function openModal(content, onReady, { onClose } = {}) {
     if (event.target === dialog || event.target.closest('[data-close]')) close();
   });
   dialog.showModal();
+  fitModalsToKeyboard();
   onReady?.(dialog, close);
   return { dialog, close };
 }
