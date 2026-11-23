@@ -15,7 +15,8 @@
   --red: #D9480F;
   --green: #248A3D;
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --tabbar-space: 96px;
+  /* Espacio para la barra de abajo. En iPhone sin botón de inicio la barra sube por la rayita de deslizar (safe area). */
+  --tabbar-space: calc(104px + env(safe-area-inset-bottom));
 }
 
 * { box-sizing: border-box; }
@@ -174,7 +175,7 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; margin: 0; lin
 .ticket .btn-pill { margin-top: 8px; }
 
 /* Páginas y grupos */
-.page { max-width: 640px; margin: 0 auto; padding: 18px 16px 110px; display: flex; flex-direction: column; gap: 14px; }
+.page { max-width: 640px; margin: 0 auto; padding: 18px 16px calc(110px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 14px; }
 .nav-row { display: flex; justify-content: space-between; align-items: center; }
 .back { display: inline-flex; align-items: center; gap: 6px; color: var(--accent); text-decoration: none; font-size: 16px; min-height: 32px; }
 .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
