@@ -1,11 +1,11 @@
 :root {
   color-scheme: light;
-  --bg: #FAF6F0;
+  --bg: #F2F2F7;
   --surface: #FFFFFF;
   --ink: #1C1C1E;
   --ink-2: #3A3A3C;
   --muted: #6C6C70;
-  --line: #EEE5D9;
+  --line: #E5E5EA;
   --fill: rgba(118, 118, 128, .12);
   /* Color de marca Squin (rojo vino) y avisos en naranja para que no se confundan con la marca. */
   --accent: #9E0F24;
