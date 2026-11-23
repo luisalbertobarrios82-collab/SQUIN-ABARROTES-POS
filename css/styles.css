@@ -68,7 +68,7 @@ body[data-view=escanear] .tabbar { display: none; }
 .btn-pill { display: flex; width: 100%; height: 50px; border-radius: 25px; font-size: 17px; }
 .btn-plain { display: flex; width: 100%; background: none; box-shadow: none; }
 /* Volver y Cancelar solo cierran la ventana: van en gris para que no se sientan como algo malo. */
-.btn[data-close], .link[data-close] { color: var(--ink-2); }
+.btn[data-close]:not(.btn-primary):not(.btn-danger), .link[data-close] { color: var(--ink-2); }
 .sheet-head .link-strong { color: var(--action); }
 .link { background: none; border: 0; padding: 4px 2px; color: var(--accent); font-size: 15px; font-weight: 400; min-height: 32px; }
 .link-strong { font-weight: 600; }
