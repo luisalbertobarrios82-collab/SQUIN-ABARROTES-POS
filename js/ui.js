@@ -136,19 +136,48 @@ export function showError(error) {
 // Abre un <dialog> como hoja inferior. onReady recibe (dialog, close).
 // En iPhone el teclado tapa la parte de abajo de la pantalla, pero la página no se entera:
 // las ventanas se quedaban debajo del teclado. Se suben justo encima de él.
+// Para que no brinque: se regresa a su lugar el corrimiento que hace el iPhone por su cuenta,
+// solo se mueve la ventana cuando cambia el alto del teclado, y el campo se muestra moviendo
+// únicamente el contenido de la ventana (nunca la página entera).
+let keyboardHeight = 0;
+let fitFrame = 0;
+
+function revealFocused(dialog) {
+  const field = document.activeElement;
+  if (!field || !dialog.contains(field) || field === dialog) return;
+  const box = dialog.getBoundingClientRect();
+  const rect = field.getBoundingClientRect();
+  if (rect.bottom > box.bottom - 16) dialog.scrollTop += rect.bottom - box.bottom + 24;
+  else if (rect.top < box.top + 16) dialog.scrollTop -= box.top - rect.top + 24;
+}
+
 function fitModalsToKeyboard() {
   const vv = window.visualViewport;
-  if (!vv) return;
-  const keyboard = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
-  document.querySelectorAll('dialog.modal[open]').forEach((dialog) => {
-    dialog.style.marginBottom = keyboard ? `${keyboard}px` : '';
-    dialog.style.maxHeight = keyboard ? `${Math.round(vv.height * 0.94)}px` : '';
+  const dialog = [...document.querySelectorAll('dialog.modal[open]')].pop();
+  if (!vv || !dialog) return;
+  // El iPhone corre la página para mostrar el campo; la ventana ya lo muestra, así que se deshace.
+  if (window.scrollY || vv.offsetTop) window.scrollTo(0, 0);
+  // El alto del teclado no depende de cuánto corrió el iPhone la vista.
+  const keyboard = Math.max(0, Math.round(window.innerHeight - vv.height));
+  if (Math.abs(keyboard - keyboardHeight) < 4) return;
+  keyboardHeight = keyboard;
+  document.querySelectorAll('dialog.modal[open]').forEach((open) => {
+    open.style.marginBottom = keyboard ? `${keyboard}px` : '';
+    open.style.maxHeight = keyboard ? `${Math.round(vv.height * 0.94)}px` : '';
   });
-  const focused = document.activeElement;
-  if (keyboard && focused?.closest?.('dialog.modal')) focused.scrollIntoView({ block: 'center' });
+  if (keyboard) revealFocused(dialog);
 }
-window.visualViewport?.addEventListener('resize', fitModalsToKeyboard);
-window.visualViewport?.addEventListener('scroll', fitModalsToKeyboard);
+
+function scheduleFit() {
+  cancelAnimationFrame(fitFrame);
+  fitFrame = requestAnimationFrame(fitModalsToKeyboard);
+}
+window.visualViewport?.addEventListener('resize', scheduleFit);
+window.visualViewport?.addEventListener('scroll', scheduleFit);
+document.addEventListener('focusin', (event) => {
+  const dialog = event.target.closest?.('dialog.modal[open]');
+  if (dialog && keyboardHeight) requestAnimationFrame(() => revealFocused(dialog));
+});
 
 export function openModal(content, onReady, { onClose } = {}) {
   const dialog = document.createElement('dialog');
@@ -168,7 +197,12 @@ export function openModal(content, onReady, { onClose } = {}) {
     if (event.target === dialog || event.target.closest('[data-close]')) close();
   });
   dialog.showModal();
-  fitModalsToKeyboard();
+  // Si el teclado ya estaba abierto, la ventana nueva nace encima de él.
+  if (keyboardHeight && window.visualViewport) {
+    dialog.style.marginBottom = `${keyboardHeight}px`;
+    dialog.style.maxHeight = `${Math.round(window.visualViewport.height * 0.94)}px`;
+  }
+  scheduleFit();
   onReady?.(dialog, close);
   return { dialog, close };
 }
