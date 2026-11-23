@@ -1,4 +1,4 @@
-# Abarrotería POS
+# Squin
 
 Punto de venta para tiendas de abarrotes. Es una app web sin servidor: se abre desde un enlace, se puede instalar en el teléfono y sigue funcionando sin internet.
 

@@ -1,7 +1,7 @@
 {
-  "name": "Abarrotería POS",
-  "short_name": "Abarrotes",
-  "description": "Punto de venta para abarrotes",
+  "name": "Squin · Punto de venta",
+  "short_name": "Squin",
+  "description": "Punto de venta para la tiendita de la esquina",
   "lang": "es-MX",
   "start_url": "./",
   "scope": "./",
