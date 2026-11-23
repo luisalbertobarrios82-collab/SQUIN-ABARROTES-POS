@@ -10,8 +10,8 @@
   /* Color de marca Squin (rojo vino) y avisos en naranja para que no se confundan con la marca. */
   --accent: #9E0F24;
   --accent-soft: rgba(158, 15, 36, .09);
-  /* Botones de acción (Cobrar, Guardar): verde = listo, adelante. El rojo vino queda para la marca. */
-  --action: #1E8E3E;
+  /* Botones de acción (Cobrar, Guardar): gris casi negro, neutral. El rojo vino queda para la marca. */
+  --action: #1C1C1E;
   --red: #D9480F;
   --green: #248A3D;
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
