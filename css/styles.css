@@ -10,6 +10,8 @@
   /* Color de marca Squin (rojo vino) y avisos en naranja para que no se confundan con la marca. */
   --accent: #9E0F24;
   --accent-soft: rgba(158, 15, 36, .09);
+  /* Botones de acción (Cobrar, Guardar): verde = listo, adelante. El rojo vino queda para la marca. */
+  --action: #1E8E3E;
   --red: #D9480F;
   --green: #248A3D;
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -57,13 +59,16 @@ body[data-view=escanear] .tabbar { display: none; }
 .btn:disabled { opacity: .4; cursor: not-allowed; }
 .btn:active:not(:disabled) { opacity: .7; }
 .btn:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
-.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary { background: var(--action); color: #fff; }
 .btn-danger { background: var(--red); color: #fff; }
 .btn-ghost-danger { color: var(--red); }
 .btn-tinted { background: var(--accent-soft); color: var(--accent); box-shadow: none; }
 .btn-sm { min-height: 34px; padding: 0 12px; font-size: 14px; }
 .btn-pill { display: flex; width: 100%; height: 50px; border-radius: 25px; font-size: 17px; }
 .btn-plain { display: flex; width: 100%; background: none; box-shadow: none; }
+/* Volver y Cancelar solo cierran la ventana: van en gris para que no se sientan como algo malo. */
+.btn[data-close], .link[data-close] { color: var(--ink-2); }
+.sheet-head .link-strong { color: var(--action); }
 .link { background: none; border: 0; padding: 4px 2px; color: var(--accent); font-size: 15px; font-weight: 400; min-height: 32px; }
 .link-strong { font-weight: 600; }
 .link-danger { color: var(--red); font-size: 13px; }
