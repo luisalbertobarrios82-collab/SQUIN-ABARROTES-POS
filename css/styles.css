@@ -61,6 +61,8 @@ body[data-view=escanear] .tabbar { display: none; }
 .btn:active:not(:disabled) { opacity: .7; }
 .btn:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
 .btn-primary { background: var(--action); color: #fff; }
+/* Cerrar el cobro (Confirmar cobro, Nueva venta) va en verde: dinero recibido, venta lista. */
+.btn-primary.btn-go { background: #1E8E3E; }
 .btn-danger { background: var(--red); color: #fff; }
 .btn-ghost-danger { color: var(--red); }
 .btn-tinted { background: var(--accent-soft); color: var(--accent); box-shadow: none; }

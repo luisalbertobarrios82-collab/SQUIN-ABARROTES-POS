@@ -283,7 +283,7 @@ export function checkout() {
         </label>
         <p class="hint">Si el nombre es nuevo, se crea el cliente.</p>
       </div>
-      <button class="btn btn-primary btn-pill">Confirmar cobro</button>
+      <button class="btn btn-primary btn-go btn-pill">Confirmar cobro</button>
       <button type="button" class="btn btn-plain" data-close>Volver</button>
     </form>
   `, async (dialog, close) => {
@@ -340,7 +340,7 @@ function saleDone(sale) {
       ${sale.method === 'cash'
         ? html`<p class="checkout-label">Cambio</p><p class="checkout-total">${money(sale.change)}</p>`
         : html`<p class="checkout-total">${money(sale.total)}</p>`}
-      <button class="btn btn-primary btn-pill" data-close autofocus>Nueva venta</button>
+      <button class="btn btn-primary btn-go btn-pill" data-close autofocus>Nueva venta</button>
       <button class="btn btn-plain" data-print>Imprimir ticket</button>
     </div>
   `, (dialog) => {
