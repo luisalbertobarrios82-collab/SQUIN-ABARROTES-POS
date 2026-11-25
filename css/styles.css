@@ -231,11 +231,11 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; margin: 0; lin
 .stack i:first-child { border-radius: 4px 0 0 4px; }
 .stack i:last-child { border-radius: 0 4px 4px 0; }
 .stack i:only-child { border-radius: 4px; }
-/* Formas de pago: efectivo verde, tarjeta azul, transferencia turquesa y fiado morado. */
+/* Formas de pago: efectivo verde, tarjeta azul, transferencia turquesa y fiado naranja. */
 .s-cash { background: #34A853; }
 .s-card { background: #0071E3; }
 .s-transfer { background: #30B0C7; }
-.s-credit { background: #AF52DE; }
+.s-credit { background: #FF9500; }
 .pay-dot { display: inline-block; width: 8px; height: 8px; border-radius: 4px; margin-right: 7px; vertical-align: 1px; }
 .legend { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 12px; }
 .legend > div { display: flex; flex-direction: column; }
