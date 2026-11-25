@@ -4,6 +4,7 @@ import { renderSell } from './views/sell.js';
 import { renderScan } from './views/scan.js';
 import { renderInventory, renderProduct } from './views/inventory.js';
 import { renderImport } from './views/import.js';
+import { renderSupplier, renderSuppliers } from './views/suppliers.js';
 import { renderCorte, renderCorteDetail } from './views/corte.js';
 import { renderFiado } from './views/fiado.js';
 import { renderFacturas } from './views/facturas.js';
@@ -17,6 +18,8 @@ const ROUTES = {
   inventario: renderInventory,
   producto: renderProduct,
   importar: renderImport,
+  proveedores: renderSuppliers,
+  proveedor: renderSupplier,
   corte: renderCorte,
   'corte-detalle': renderCorteDetail,
   fiado: renderFiado,
@@ -25,11 +28,12 @@ const ROUTES = {
   reportes: renderReports,
   ajustes: renderSettings,
 };
-const ACTIVE_TAB = { producto: 'inventario', importar: 'inventario', facturas: 'corte', 'corte-detalle': 'corte' };
+const ACTIVE_TAB = { producto: 'inventario', importar: 'inventario', proveedores: 'inventario', proveedor: 'inventario', facturas: 'corte', 'corte-detalle': 'corte' };
 
 // Al volver de un detalle a su lista, la lista regresa a donde se había quedado.
 const RETURNS_TO = {
-  inventario: ['producto', 'importar'],
+  inventario: ['producto', 'importar', 'proveedores'],
+  proveedores: ['proveedor'],
   corte: ['corte-detalle', 'facturas'],
   vender: ['ventas', 'reportes', 'ajustes', 'facturas'],
 };

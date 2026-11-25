@@ -269,6 +269,11 @@ export function renderInventory(root) {
         ${stat('low', 'si-red', '↓', low, 'Se acaban')}
         ${stat('expiring', 'si-yellow', '!', expiring, 'Caducan')}
       </div>
+      <a class="group row row-btn suppliers-link" href="#proveedores">
+        <span class="stat-icon si-truck" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h11v10H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/></svg></span>
+        <span class="row-main"><span class="row-title">Proveedores</span><small>Quién te surte, qué le compras y cuánto</small></span>
+        ${chevron}
+      </a>
       <div class="excel-actions">
         <a class="link export-link" href="#importar">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20V9M7 14l5-5 5 5M5 4h14"></path></svg>

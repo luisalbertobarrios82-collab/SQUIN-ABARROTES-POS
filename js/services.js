@@ -502,6 +502,58 @@ export async function setInvoiceStatus(id, status) {
   await put('invoices', { ...invoice, status });
 }
 
+// ---------- Proveedores y compras ----------
+export const listSuppliers = async () => (await getAll('suppliers')).sort((a, b) => a.name.localeCompare(b.name, 'es'));
+export const getSupplier = (id) => get('suppliers', id);
+
+export async function saveSupplier({ id, name, phone = '', visitDays = '', notes = '' }) {
+  const clean = name.trim();
+  if (!clean) throw new UserError('Escribe el nombre del proveedor.');
+  const all = await getAll('suppliers');
+  if (all.some((s) => s.id !== id && normalize(s.name) === normalize(clean))) throw new UserError('Ya tienes un proveedor con ese nombre.');
+  const existing = id ? all.find((s) => s.id === id) : null;
+  const supplier = { ...(existing || { id: uid(), createdAt: now() }), name: clean, phone: phone.trim(), visitDays: visitDays.trim(), notes: notes.trim() };
+  await put('suppliers', supplier);
+  return supplier;
+}
+
+export async function deleteSupplier(id) {
+  const purchases = await getAllByIndex('purchases', 'supplierId', id);
+  if (purchases.length) throw new UserError('Este proveedor ya tiene compras registradas; no se puede borrar.');
+  await tx(['suppliers'], 'readwrite', async ({ suppliers }) => { await req(suppliers.delete(id)); });
+}
+
+export const purchasesOf = async (supplierId) => (await getAllByIndex('purchases', 'supplierId', supplierId))
+  .sort((a, b) => b.date.localeCompare(a.date));
+export const allPurchases = async () => (await getAll('purchases')).sort((a, b) => b.date.localeCompare(a.date));
+
+// Una compra suma existencias, actualiza el costo de cada producto y queda en el historial del proveedor.
+export async function registerPurchase(supplierId, lines, note = '') {
+  if (!lines.length) throw new UserError('Agrega al menos un producto a la compra.');
+  const purchase = await tx(['suppliers', 'products', 'movements', 'purchases'], 'readwrite', async ({ suppliers, products, movements, purchases }) => {
+    const supplier = await req(suppliers.get(supplierId));
+    if (!supplier) throw new UserError('El proveedor ya no existe.');
+    const id = uid();
+    const saved = [];
+    for (const line of lines) {
+      if (!(line.qty > 0)) throw new UserError(`Revisa la cantidad de "${line.name}".`);
+      if (!(line.unitCost >= 0)) throw new UserError(`Revisa el costo de "${line.name}".`);
+      const product = await req(products.get(line.productId));
+      if (!product) throw new UserError(`"${line.name}" ya no existe en el inventario.`);
+      product.stock = roundQty(product.stock + line.qty);
+      product.cost = line.unitCost;
+      await req(products.put(product));
+      await req(movements.put(movement(product, line.qty, `Compra a ${supplier.name}`, id)));
+      saved.push({ productId: product.id, name: product.name, unit: product.unit, qty: line.qty, unitCost: line.unitCost, total: Math.round(line.qty * line.unitCost) });
+    }
+    const record = { id, supplierId, supplierName: supplier.name, date: now(), lines: saved, total: saved.reduce((a, l) => a + l.total, 0), note: note.trim() };
+    await req(purchases.put(record));
+    return record;
+  });
+  await refreshProducts();
+  return purchase;
+}
+
 // ---------- Respaldo ----------
 export async function exportBackup() {
   const data = await tx(STORES, 'readonly', async (stores) => {
@@ -512,13 +564,15 @@ export async function exportBackup() {
 }
 
 export async function restoreBackup(backup) {
-  if (backup?.app !== 'abarroteria-pos' || !STORES.every((name) => Array.isArray(backup.data?.[name]))) {
+  // Los respaldos anteriores no traen proveedores ni compras: se toman como vacíos.
+  const optional = ['suppliers', 'purchases'];
+  if (backup?.app !== 'abarroteria-pos' || !STORES.every((name) => Array.isArray(backup.data?.[name]) || optional.includes(name))) {
     throw new UserError('El archivo no es un respaldo válido de este sistema.');
   }
   await tx(STORES, 'readwrite', async (stores) => {
     for (const name of STORES) {
       await req(stores[name].clear());
-      for (const row of backup.data[name]) await req(stores[name].put(row));
+      for (const row of backup.data[name] || []) await req(stores[name].put(row));
     }
   });
   await init();
