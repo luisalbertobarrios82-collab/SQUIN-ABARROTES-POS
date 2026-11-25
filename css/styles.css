@@ -210,9 +210,9 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; margin: 0; lin
 .stat-card[aria-pressed=true] { border-color: var(--accent); }
 .stat-card strong { font-size: 22px; font-weight: 700; margin-top: 6px; line-height: 1.1; }
 .stat-icon { width: 24px; height: 24px; border-radius: 12px; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
-.si-accent { background: var(--accent); }
-.si-red { background: var(--red); }
-.si-orange { background: #C93400; }
+.si-blue { background: #0071E3; }
+.si-red { background: #D70015; }
+.si-yellow { background: #FFC107; color: #3D2E00; }
 
 .product-hero { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; margin: 8px 0; }
 .product-hero h1 { font-size: 26px; margin-top: 10px; }
