@@ -261,38 +261,137 @@ export function localDate(date = new Date()) {
 export const dayStart = (value) => new Date(`${value}T00:00:00`).toISOString();
 export const dayEnd = (value) => new Date(`${value}T23:59:59.999`).toISOString();
 
-export function printTicket(sale) {
+// Renglones del ticket: se usan igual para imprimir, para la vista previa y para la imagen.
+function ticketLines(sale) {
   const { storeName, address, phone, taxId, ticketFooter } = state.settings;
-  setHTML(document.getElementById('print-area'), html`
-    <div class="ticket-print">
-      <h1>${storeName}</h1>
-      ${address && html`<p>${address}</p>`}
-      ${phone && html`<p>Tel. ${phone}</p>`}
-      ${taxId && html`<p>RFC ${taxId}</p>`}
-      <hr>
-      <p>Ticket ${sale.folio} · ${dateTime(sale.date)}</p>
-      ${sale.status === 'cancelled' && html`<p><strong>*** VENTA CANCELADA ***</strong></p>`}
-      <hr>
-      ${sale.lines.map((line) => html`
-        <div class="tp-item">${line.name}</div>
-        <div class="tp-row"><span>${formatQty(line.qty)} ${line.unit} x ${moneyFull(line.unitPrice)}</span><span>${moneyFull(line.gross)}</span></div>
-      `)}
-      <hr>
-      ${sale.discount > 0 && html`<div class="tp-row"><span>Descuento</span><span>-${moneyFull(sale.discount)}</span></div>`}
-      <div class="tp-row"><span>Subtotal</span><span>${moneyFull(sale.net)}</span></div>
-      ${Object.entries(sale.taxByRate).map(([rate, amount]) => html`
-        <div class="tp-row"><span>IVA ${rate}%</span><span>${moneyFull(amount)}</span></div>
-      `)}
-      <div class="tp-row tp-total"><span>TOTAL</span><span>${moneyFull(sale.total)}</span></div>
-      ${sale.method === 'credit'
-        ? html`<div class="tp-row"><span>Fiado a</span><span>${sale.customerName}</span></div>`
-        : html`<div class="tp-row"><span>${METHODS[sale.method]}</span><span>${moneyFull(sale.received)}</span></div>`}
-      ${sale.change > 0 && html`<div class="tp-row"><span>Cambio</span><span>${moneyFull(sale.change)}</span></div>`}
-      <hr>
-      <p>${ticketFooter}</p>
+  const lines = [{ t: 'title', text: storeName }];
+  if (address) lines.push({ t: 'center', text: address });
+  if (phone) lines.push({ t: 'center', text: `Tel. ${phone}` });
+  if (taxId) lines.push({ t: 'center', text: `RFC ${taxId}` });
+  lines.push({ t: 'hr' }, { t: 'center', text: `Ticket ${sale.folio} · ${dateTime(sale.date)}` });
+  if (sale.status === 'cancelled') lines.push({ t: 'center', text: '*** VENTA CANCELADA ***', bold: true });
+  lines.push({ t: 'hr' });
+  sale.lines.forEach((line) => {
+    lines.push({ t: 'left', text: line.name });
+    lines.push({ t: 'row', l: `${formatQty(line.qty)} ${line.unit} x ${moneyFull(line.unitPrice)}`, r: moneyFull(line.gross) });
+  });
+  lines.push({ t: 'hr' });
+  if (sale.discount > 0) lines.push({ t: 'row', l: 'Descuento', r: `-${moneyFull(sale.discount)}` });
+  lines.push({ t: 'row', l: 'Subtotal', r: moneyFull(sale.net) });
+  Object.entries(sale.taxByRate).forEach(([rate, amount]) => lines.push({ t: 'row', l: `IVA ${rate}%`, r: moneyFull(amount) }));
+  lines.push({ t: 'row', l: 'TOTAL', r: moneyFull(sale.total), big: true });
+  if (sale.method === 'credit') lines.push({ t: 'row', l: 'Fiado a', r: sale.customerName });
+  else lines.push({ t: 'row', l: METHODS[sale.method], r: moneyFull(sale.received) });
+  if (sale.change > 0) lines.push({ t: 'row', l: 'Cambio', r: moneyFull(sale.change) });
+  if (ticketFooter) lines.push({ t: 'hr' }, { t: 'center', text: ticketFooter });
+  return lines;
+}
+
+const ticketHtml = (lines) => html`
+  <div class="ticket-print">
+    ${lines.map((line) => {
+      if (line.t === 'title') return html`<h1>${line.text}</h1>`;
+      if (line.t === 'hr') return html`<hr>`;
+      if (line.t === 'left') return html`<div class="tp-item">${line.text}</div>`;
+      if (line.t === 'row') return html`<div class="tp-row ${line.big ? 'tp-total' : ''}"><span>${line.l}</span><span>${line.r}</span></div>`;
+      return html`<p>${line.bold ? html`<strong>${line.text}</strong>` : line.text}</p>`;
+    })}
+  </div>
+`;
+
+// Dibuja el ticket como imagen, del ancho de un ticket de 80 mm.
+function ticketImage(lines) {
+  const width = 576;
+  const pad = 28;
+  const font = (size, bold) => `${bold ? '700 ' : ''}${size}px ui-monospace, Menlo, Consolas, monospace`;
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const wrap = (text, size, bold, max) => {
+    ctx.font = font(size, bold);
+    const out = [];
+    let current = '';
+    String(text).split(' ').forEach((word) => {
+      const next = current ? `${current} ${word}` : word;
+      if (ctx.measureText(next).width > max && current) { out.push(current); current = word; } else current = next;
+    });
+    out.push(current);
+    return out;
+  };
+  const draw = (paint) => {
+    let y = pad;
+    lines.forEach((line) => {
+      if (line.t === 'hr') {
+        if (paint) { ctx.setLineDash([8, 6]); ctx.beginPath(); ctx.moveTo(pad, y + 10); ctx.lineTo(width - pad, y + 10); ctx.stroke(); }
+        y += 22;
+        return;
+      }
+      const size = line.t === 'title' ? 32 : line.big ? 28 : 22;
+      const bold = line.t === 'title' || line.big || line.bold;
+      const step = Math.round(size * 1.4);
+      if (line.t === 'row') {
+        if (paint) {
+          ctx.font = font(size, bold);
+          ctx.textAlign = 'left'; ctx.fillText(line.l, pad, y + size);
+          ctx.textAlign = 'right'; ctx.fillText(line.r, width - pad, y + size);
+        }
+        y += step;
+        return;
+      }
+      wrap(line.text, size, bold, width - pad * 2).forEach((part) => {
+        if (paint) {
+          ctx.font = font(size, bold);
+          ctx.textAlign = line.t === 'left' ? 'left' : 'center';
+          ctx.fillText(part, line.t === 'left' ? pad : width / 2, y + size);
+        }
+        y += step;
+      });
+    });
+    return y + pad;
+  };
+  canvas.width = width;
+  canvas.height = draw(false);
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#000';
+  ctx.strokeStyle = '#000';
+  draw(true);
+  return new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+}
+
+async function shareTicket(sale, lines) {
+  const blob = await ticketImage(lines);
+  const file = new File([blob], `ticket-${sale.folio}.png`, { type: 'image/png' });
+  if (navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: `Ticket ${sale.folio}` });
+    } catch (error) {
+      if (error.name !== 'AbortError') throw error;
+    }
+    return;
+  }
+  // Computadoras sin menú de compartir: se descarga la imagen.
+  download(file.name, blob, 'image/png');
+  toast('Se descargó la imagen del ticket');
+}
+
+// El botón de imprimir del navegador no funciona en todos los teléfonos (por ejemplo, en el iPhone
+// con la app en la pantalla de inicio, o sin impresora AirPrint). Por eso se muestra el ticket y se
+// ofrece compartirlo como imagen: desde ahí se manda por WhatsApp o se usa "Imprimir" del teléfono.
+export function printTicket(sale) {
+  const lines = ticketLines(sale);
+  setHTML(document.getElementById('print-area'), ticketHtml(lines));
+  openModal(html`
+    <div class="modal-body">
+      <h2>Ticket ${sale.folio}</h2>
+      <div class="ticket-preview">${ticketHtml(lines)}</div>
+      <button type="button" class="btn btn-primary btn-pill" data-share>Compartir o imprimir</button>
+      <button type="button" class="btn btn-plain" data-print-now>Imprimir directo</button>
+      <button type="button" class="btn btn-plain" data-close>Cerrar</button>
     </div>
-  `);
-  window.print();
+  `, (dialog) => {
+    dialog.querySelector('[data-share]').addEventListener('click', () => shareTicket(sale, lines).catch(showError));
+    dialog.querySelector('[data-print-now]').addEventListener('click', () => window.print());
+  });
 }
 
 export function promptOpenShift(onDone) {
