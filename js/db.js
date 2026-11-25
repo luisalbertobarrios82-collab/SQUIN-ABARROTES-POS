@@ -1,7 +1,7 @@
 // Envoltura mínima de IndexedDB.
 const DB_NAME = 'abarroteria-pos';
-const DB_VERSION = 2;
-export const STORES = ['products', 'sales', 'movements', 'shifts', 'cashMoves', 'customers', 'creditMoves', 'invoices', 'kv', 'suppliers', 'purchases'];
+const DB_VERSION = 3;
+export const STORES = ['products', 'sales', 'movements', 'shifts', 'cashMoves', 'customers', 'creditMoves', 'invoices', 'kv', 'suppliers', 'purchases', 'expenses'];
 
 let dbPromise = null;
 
@@ -11,14 +11,14 @@ function open() {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
     request.onupgradeneeded = (event) => {
       const db = request.result;
-      // Versión 2: proveedores y compras. Se agregan sin tocar lo que ya había.
-      if (event.oldVersion >= 1) {
+      const from = event.oldVersion;
+      // Cada versión agrega lo suyo sin tocar lo que ya había en el teléfono.
+      if (from < 2) {
         db.createObjectStore('suppliers', { keyPath: 'id' });
         db.createObjectStore('purchases', { keyPath: 'id' }).createIndex('supplierId', 'supplierId');
-        return;
       }
-      db.createObjectStore('suppliers', { keyPath: 'id' });
-      db.createObjectStore('purchases', { keyPath: 'id' }).createIndex('supplierId', 'supplierId');
+      if (from < 3) db.createObjectStore('expenses', { keyPath: 'id' }).createIndex('date', 'date');
+      if (from >= 1) return;
       db.createObjectStore('products', { keyPath: 'id' }).createIndex('codeList', 'codeList', { multiEntry: true });
       const sales = db.createObjectStore('sales', { keyPath: 'id' });
       sales.createIndex('date', 'date');

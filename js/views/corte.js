@@ -206,6 +206,11 @@ async function load() {
       ${otherPayments(sales, payments)}
       ${methodChanges(sales)}
       ${topSold(report)}
+      <a class="group row row-btn expenses-link" href="#gastos">
+        <span class="stat-icon si-truck" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v10H3z"/><circle cx="12" cy="12" r="2.5"/></svg></span>
+        <span class="row-main"><span class="row-title">Gastos y servicios</span><small>Luz, agua, renta, sueldos…</small></span>
+        ${chevron}
+      </a>
       <a class="btn btn-pill btn-tinted" href="#facturas">Emitir facturas</a>
       ${historySection(history)}
     `);
@@ -239,7 +244,12 @@ async function load() {
     ${otherPayments(sales, payments)}
       ${methodChanges(sales)}
     ${topSold(report)}
-    <a class="btn btn-pill btn-tinted" href="#facturas">Emitir facturas</a>
+    <a class="group row row-btn expenses-link" href="#gastos">
+        <span class="stat-icon si-truck" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v10H3z"/><circle cx="12" cy="12" r="2.5"/></svg></span>
+        <span class="row-main"><span class="row-title">Gastos y servicios</span><small>Luz, agua, renta, sueldos…</small></span>
+        ${chevron}
+      </a>
+      <a class="btn btn-pill btn-tinted" href="#facturas">Emitir facturas</a>
     <button class="btn btn-primary btn-pill" id="close">Cerrar el día</button>
     ${historySection(history)}
   `);

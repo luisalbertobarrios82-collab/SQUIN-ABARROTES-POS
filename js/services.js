@@ -554,6 +554,44 @@ export async function registerPurchase(supplierId, lines, note = '') {
   return purchase;
 }
 
+// ---------- Gastos y servicios ----------
+export const expensesBetween = async (from, to) => (await getAllByIndex('expenses', 'date', IDBKeyRange.bound(from, to)))
+  .sort((a, b) => b.date.localeCompare(a.date));
+
+// source 'cash': se pagó con dinero de la caja (sale como salida en el corte). 'external': dinero de fuera.
+export async function registerExpense({ category, label, amount, source, note = '' }) {
+  if (!(amount > 0)) throw new UserError('Escribe cuánto se pagó.');
+  if (source !== 'cash' && source !== 'external') throw new UserError('Elige con qué dinero se pagó.');
+  if (source === 'cash' && !state.shift) throw new UserError('Abre la caja para pagar con dinero de la caja, o elige "Dinero externo".');
+  return tx(['expenses', 'cashMoves', 'kv'], 'readwrite', async ({ expenses, cashMoves, kv }) => {
+    const id = uid();
+    let cashMoveId = null;
+    if (source === 'cash') {
+      const openId = (await req(kv.get('openShiftId')))?.value;
+      if (openId !== state.shift.id) throw new UserError('La caja ya no está abierta. Recarga la página.');
+      cashMoveId = uid();
+      await req(cashMoves.put({ id: cashMoveId, shiftId: openId, type: 'out', amount, reason: `Pago de ${label.toLowerCase()}`, date: now(), expenseId: id }));
+    }
+    const record = { id, category, label, amount, source, note: note.trim(), date: now(), shiftId: source === 'cash' ? state.shift.id : null, cashMoveId };
+    await req(expenses.put(record));
+    return record;
+  });
+}
+
+// Borrar un gasto: si salió de la caja y esa caja sigue abierta, el dinero regresa al conteo.
+export async function deleteExpense(id) {
+  await tx(['expenses', 'cashMoves', 'kv'], 'readwrite', async ({ expenses, cashMoves, kv }) => {
+    const expense = await req(expenses.get(id));
+    if (!expense) return;
+    if (expense.cashMoveId) {
+      const openId = (await req(kv.get('openShiftId')))?.value;
+      if (expense.shiftId !== openId) throw new UserError('Este pago salió de una caja que ya se cerró; no se puede borrar.');
+      await req(cashMoves.delete(expense.cashMoveId));
+    }
+    await req(expenses.delete(id));
+  });
+}
+
 // ---------- Respaldo ----------
 export async function exportBackup() {
   const data = await tx(STORES, 'readonly', async (stores) => {
@@ -565,7 +603,7 @@ export async function exportBackup() {
 
 export async function restoreBackup(backup) {
   // Los respaldos anteriores no traen proveedores ni compras: se toman como vacíos.
-  const optional = ['suppliers', 'purchases'];
+  const optional = ['suppliers', 'purchases', 'expenses'];
   if (backup?.app !== 'abarroteria-pos' || !STORES.every((name) => Array.isArray(backup.data?.[name]) || optional.includes(name))) {
     throw new UserError('El archivo no es un respaldo válido de este sistema.');
   }
