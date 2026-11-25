@@ -39,7 +39,7 @@ function moveForm(type) {
 
 function hero(report, label = 'Vendido hoy') {
   const total = Object.values(report.byMethod).reduce((a, b) => a + b, 0);
-  const active = SERIES.filter((key) => report.byMethod[key] > 0 || key !== 'transfer');
+  const active = SERIES; // Las cuatro formas de pago siempre a la vista, aunque estén en $0.
   return html`
     <section class="hero-card">
       <small>${label}</small>
